@@ -25,6 +25,7 @@ export default function DashboardPage() {
   const [reload, setReload] = useState(0);
   const [now, setNow] = useState(0);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
+  useEffect(() => { const timer = setInterval(() => setReload(value => value + 1), 60000); return () => clearInterval(timer); }, []);
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
@@ -43,11 +44,13 @@ export default function DashboardPage() {
   const overdue = (r: DocumentRequest) => !!r.dueDate && new Date(r.dueDate).getTime() < now && !terminal.includes(r.status);
   const waiting = requests.filter(isWaiting).length;
   const completed = requests.filter(r => r.status === 'completed').length;
+  const overdueCount = requests.filter(overdue).length;
   const stats = [
     { label: 'Active applications', value: applications, icon: FolderOpen, color: 'text-blue-600 bg-blue-50' },
     { label: 'Waiting on borrower', value: waiting, icon: Clock, color: 'text-orange-600 bg-orange-50' },
     { label: 'Ready for review', value: requests.filter(r => r.status === 'under_review').length, icon: FileText, color: 'text-indigo-600 bg-indigo-50' },
     { label: 'Missing documents', value: requests.filter(r => !terminal.includes(r.status)).reduce((sum, r) => sum + (r.progress?.missing || 0), 0), icon: AlertCircle, color: 'text-red-600 bg-red-50' },
+    { label: 'Overdue requests', value: overdueCount, icon: AlertCircle, color: 'text-rose-600 bg-rose-50' },
     { label: 'Completed requests', value: completed, icon: CheckCircle, color: 'text-emerald-600 bg-emerald-50' },
   ];
   const visible = requests.filter(r => {
@@ -67,18 +70,15 @@ export default function DashboardPage() {
   };
   return <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
     <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-      <div><p className="text-xs font-semibold uppercase tracking-widest text-[#2d4a7a] mb-2">Lender dashboard</p>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{user?.firstName ? `Welcome back, ${user.firstName}` : 'Your document workspace'}</h1>
-        <p className="text-sm text-slate-500 mt-2">Track requests, follow up with borrowers, and keep every file moving.</p>
-      </div>
-      <Link href="/requests" className="inline-flex items-center justify-center gap-2 bg-[#2d4a7a] text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-[#1a2744] transition"><Plus size={17} /> Create a request</Link>
+      <div><p className="text-xs font-semibold uppercase tracking-widest text-[#2d4a7a] mb-2">Lender dashboard</p><h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{user?.firstName ? `Welcome back, ${user.firstName}` : 'Your document workspace'}</h1><p className="text-sm text-slate-500 mt-2">Track requests, follow up with borrowers, and keep every file moving.</p></div>
+      <div className="flex flex-wrap gap-2"><button onClick={() => { setLoading(true); setReload(value => value + 1); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"><RefreshCw size={16} /> Refresh</button><Link href="/requests" className="inline-flex items-center justify-center gap-2 bg-[#2d4a7a] text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-[#1a2744] transition"><Plus size={17} /> Create a request</Link></div>
     </div>
     {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 flex flex-wrap items-center justify-between gap-3"><span>{error}</span><button onClick={() => { setLoading(true); setReload(n => n + 1); }} className="inline-flex gap-2 items-center font-semibold"><RefreshCw size={15} />Retry</button></div>}
-    <section aria-label="Organization overview" className="grid grid-cols-2 xl:grid-cols-5 gap-3">
-      {stats.map(s => <div key={s.label} className="rounded-2xl bg-white border border-slate-200 p-5 last:col-span-2 xl:last:col-span-1"><div className="flex justify-between gap-2 items-start"><p className="text-xs font-medium text-slate-500">{s.label}</p><span className={`p-2 rounded-lg ${s.color}`}><s.icon size={16} /></span></div><p className="text-3xl font-bold mt-3 text-slate-900">{loading || error ? '?' : s.value}</p></div>)}
+    <section aria-label="Organization overview" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      {stats.map(s => <div key={s.label} className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 transition hover:border-[#b7c6dc] hover:shadow-sm"><div className="flex justify-between gap-2 items-start"><p className="text-xs font-medium text-slate-500">{s.label}</p><span className={`p-2 rounded-lg ${s.color}`}><s.icon size={16} /></span></div><p className="text-3xl font-bold mt-3 text-slate-900">{loading || error ? '?' : s.value}</p></div>)}
     </section>
     <section className="bg-white rounded-2xl border border-slate-200 overflow-hidden" aria-labelledby="requests-heading">
-      <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4"><div><h2 id="requests-heading" className="font-semibold text-lg text-slate-900">Document requests</h2><p className="text-xs text-slate-500 mt-1">{loading ? 'Loading your requests?' : `${visible.length} of ${requests.length} requests`}</p></div><button onClick={exportCsv} disabled={loading || !!error || !visible.length} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"><Download size={15} />Export CSV</button></div>
+      <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4"><div><h2 id="requests-heading" className="font-semibold text-lg text-slate-900">Document requests</h2><p className="text-xs text-slate-500 mt-1">{loading ? 'Loading your requests?' : `${visible.length} of ${requests.length} requests`}</p></div><button title={loading ? 'Wait for requests to load' : error ? 'Resolve the loading error before exporting' : !visible.length ? 'There are no requests in the current filter to export' : 'Export the current filtered request list'} onClick={exportCsv} disabled={loading || !!error || !visible.length} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"><Download size={15} />Export CSV</button></div>
       <div className="px-5 pt-4 flex gap-1 overflow-x-auto border-b border-slate-100">
         {[['all', 'All requests'], ['waiting', 'Waiting on borrower'], ['under_review', 'Ready for review'], ['missing', 'Missing documents'], ['overdue', 'Overdue'], ['completed', 'Completed']].map(([value, label]) => <button key={value} onClick={() => setTab(value)} className={`px-3 pb-3 text-xs font-semibold whitespace-nowrap border-b-2 ${tab === value ? 'border-[#2d4a7a] text-[#2d4a7a]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>{label}</button>)}
       </div>
