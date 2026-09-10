@@ -6,10 +6,6 @@ import express, {
 } from 'express';
 
 import { NestFactory } from '@nestjs/core';
-<<<<<<< HEAD
-=======
-import { AppModule } from './app.module.js';
->>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { ConfigService } from '@nestjs/config';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import type { INestApplication } from '@nestjs/common';
@@ -45,9 +41,13 @@ function setupApp(app: INestApplication): void {
       response: Response,
       next: NextFunction,
     ): void => {
-      response.setHeader('X-Content-Type-Options', 'nosniff');
+      response.setHeader(
+        'X-Content-Type-Options',
+        'nosniff',
+      );
       response.setHeader('Cache-Control', 'no-store');
       response.setHeader('Referrer-Policy', 'no-referrer');
+
       next();
     },
   );
@@ -96,5 +96,6 @@ export default async function handler(
   response: Response,
 ): Promise<unknown> {
   const server = await createVercelServer();
+
   return server(request, response);
 }
