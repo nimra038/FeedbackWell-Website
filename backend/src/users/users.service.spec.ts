@@ -1,6 +1,6 @@
-import { UsersService } from './users.service';
+import { UsersService } from './users.service.js';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { UserRole, UserStatus } from './user.entity';
+import { UserRole, UserStatus } from './user.entity.js';
 import { createHash } from 'crypto';
 
 describe('Staff invitation and owner protection', () => {

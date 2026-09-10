@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Delete, Param, Body, Request, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequirePermission } from '../auth/permissions';
-import { TemplatesService } from './templates.service';
-import type { TemplateRequirement } from './template.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RequirePermission } from '../auth/permissions.js';
+import { TemplatesService } from './templates.service.js';
+import type { TemplateRequirement } from './template.entity.js';
 @Controller('v1/templates')
 @UseGuards(JwtAuthGuard)
 export class TemplatesController {

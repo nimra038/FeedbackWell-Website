@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { Customer } from '../customers/customer.entity';
-import { DocumentRequirement } from '../document-requests/document-requirement.entity';
+import { Organization } from '../organizations/organization.entity.js';
+import { Customer } from '../customers/customer.entity.js';
+import { DocumentRequirement } from '../document-requests/document-requirement.entity.js';
 
 @Entity('documents')
 export class Document {

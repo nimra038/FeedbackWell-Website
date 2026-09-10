@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Query, UseGuards, Request } from '@nestjs/common';
-import { AuditService } from './audit.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequirePermission } from '../auth/permissions';
+import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
+import { AuditService } from './audit.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @RequirePermission('audit.read')

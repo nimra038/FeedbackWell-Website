@@ -1,6 +1,6 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { mergeMap } from 'rxjs';
-import { AuditService } from './audit.service';
+import { AuditService } from './audit.service.js';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()

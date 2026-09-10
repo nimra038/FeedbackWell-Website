@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Message, MessageSenderType } from './message.entity';
-import { DocumentRequest } from '../document-requests/document-request.entity';
-import { requireText } from '../common/input';
+import { Message, MessageSenderType } from './message.entity.js';
+import { DocumentRequest } from '../document-requests/document-request.entity.js';
+import { requireText } from '../common/input.js';
 
 @Injectable()
 export class MessagesService {

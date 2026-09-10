@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
-import { CustomersService } from './customers.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequirePermission } from '../auth/permissions';
+import { CustomersService } from './customers.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/customers')

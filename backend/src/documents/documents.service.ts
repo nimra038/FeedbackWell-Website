@@ -1,15 +1,15 @@
-import { queueRequestNotice } from '../notifications/queue';
-import { StorageDeletion } from './storage-deletion.entity';
+import { queueRequestNotice } from '../notifications/queue.js';
+import { StorageDeletion } from './storage-deletion.entity.js';
 import { Injectable, NotFoundException, BadRequestException, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash, randomUUID } from 'crypto';
 import { mkdir, writeFile, unlink, open } from 'fs/promises';
 import { resolve, dirname, sep } from 'path';
-import { Document, DocumentVersion } from './document.entity';
-import { RequirementStatus, DocumentRequirement } from '../document-requests/document-requirement.entity';
-import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity';
-import { FileSecurityService } from './file-security.service';
+import { Document, DocumentVersion } from './document.entity.js';
+import { RequirementStatus, DocumentRequirement } from '../document-requests/document-requirement.entity.js';
+import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity.js';
+import { FileSecurityService } from './file-security.service.js';
 
 @Injectable()
 export class DocumentsService {
@@ -54,6 +54,7 @@ export class DocumentsService {
         const duplicate = await docs.findOne({ where: { requirementId, organizationId, fileHash } });
         if (duplicate) throw new BadRequestException('This file has already been uploaded for this requirement');
         if (!doc && await docs.count({ where: { requirementId, organizationId } }) >= (current.maxFiles || 20)) throw new BadRequestException('Maximum number of files reached. Replace an existing file instead.');
+        // oxlint-disable-next-line no-control-regex -- control characters are intentionally removed from filenames.
         const originalName = file.originalname.replace(/[\x00-\x1f\x7f]/g, '').slice(0, 240) || 'document';
         if (!doc) doc = docs.create({ organizationId, customerId, requirementId });
         Object.assign(doc, { originalName, mimeType, fileSize: file.buffer.length, fileHash, storagePath, malwareScanPassed: true, malwareScannedAt: new Date() });

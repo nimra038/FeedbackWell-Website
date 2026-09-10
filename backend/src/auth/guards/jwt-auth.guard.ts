@@ -4,8 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserStatus } from '../../users/user.entity';
-import { hasPermission, PERMISSION_KEY, Permission } from '../permissions';
+import { User, UserStatus } from '../../users/user.entity.js';
+import { hasPermission, PERMISSION_KEY, Permission } from '../permissions.js';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

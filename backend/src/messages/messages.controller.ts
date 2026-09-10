@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { MessagesService } from './messages.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequirePermission } from '../auth/permissions';
+import { MessagesService } from './messages.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/messages')

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { Customer } from '../customers/customer.entity';
-import { User } from '../users/user.entity';
+import { Organization } from '../organizations/organization.entity.js';
+import { Customer } from '../customers/customer.entity.js';
+import { User } from '../users/user.entity.js';
 
 export enum ApplicationStatus {
   DRAFT = 'draft',

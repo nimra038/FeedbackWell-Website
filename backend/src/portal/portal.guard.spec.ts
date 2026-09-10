@@ -1,4 +1,4 @@
-import { PortalGuard } from './portal.guard';
+import { PortalGuard } from './portal.guard.js';
 import { UnauthorizedException } from '@nestjs/common';
 
 describe('Borrower request boundary', () => {

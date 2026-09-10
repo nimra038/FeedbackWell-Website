@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
+import { Organization } from '../organizations/organization.entity.js';
 
 @Entity('audit_events')
 export class AuditEvent {

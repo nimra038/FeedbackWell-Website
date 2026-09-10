@@ -1,6 +1,6 @@
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
-import { UserRole, UserStatus } from '../../users/user.entity';
+import { UserRole, UserStatus } from '../../users/user.entity.js';
 
 describe('Staff authentication and authorization', () => {
   const jwt = { verify: jest.fn() };

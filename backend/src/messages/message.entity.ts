@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { DocumentRequest } from '../document-requests/document-request.entity';
+import { Organization } from '../organizations/organization.entity.js';
+import { DocumentRequest } from '../document-requests/document-request.entity.js';
 
 export enum MessageSenderType {
   USER = 'user',

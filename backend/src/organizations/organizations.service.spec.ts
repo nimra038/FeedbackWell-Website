@@ -1,4 +1,4 @@
-import { OrganizationsService } from './organizations.service';
+import { OrganizationsService } from './organizations.service.js';
 import { NotFoundException } from '@nestjs/common';
 
 describe('Organization isolation', () => {

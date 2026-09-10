@@ -1,19 +1,19 @@
-import { queueRequestNotice } from '../notifications/queue';
-import { User } from '../users/user.entity';
-import { Document, DocumentVersion } from '../documents/document.entity';
-import { Message, MessageSenderType } from '../messages/message.entity';
-import { ApplicationStatus } from '../applications/application.entity';
-import { Notification } from '../notifications/notification.entity';
-import { Organization } from '../organizations/organization.entity';
+import { queueRequestNotice } from '../notifications/queue.js';
+import { User } from '../users/user.entity.js';
+import { Document, DocumentVersion } from '../documents/document.entity.js';
+import { Message, MessageSenderType } from '../messages/message.entity.js';
+import { ApplicationStatus } from '../applications/application.entity.js';
+import { Notification } from '../notifications/notification.entity.js';
+import { Organization } from '../organizations/organization.entity.js';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Customer } from '../customers/customer.entity';
-import { Application } from '../applications/application.entity';
-import { pickFields, assertEnum, requireText } from '../common/input';
+import { Customer } from '../customers/customer.entity.js';
+import { Application } from '../applications/application.entity.js';
+import { pickFields, assertEnum, requireText } from '../common/input.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, Not } from 'typeorm';
 import { randomBytes, randomUUID } from 'crypto';
-import { DocumentRequest, DocumentRequestStatus } from './document-request.entity';
-import { DocumentRequirement, RequirementStatus } from './document-requirement.entity';
+import { DocumentRequest, DocumentRequestStatus } from './document-request.entity.js';
+import { DocumentRequirement, RequirementStatus } from './document-requirement.entity.js';
 
 @Injectable()
 export class DocumentRequestsService {

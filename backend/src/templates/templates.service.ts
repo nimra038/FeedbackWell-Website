@@ -1,9 +1,9 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { RequestTemplate, TemplateRequirement } from './template.entity';
-import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity';
-import { DocumentRequirement, RequirementStatus } from '../document-requests/document-requirement.entity';
-import { requireText } from '../common/input';
+import { RequestTemplate, TemplateRequirement } from './template.entity.js';
+import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity.js';
+import { DocumentRequirement, RequirementStatus } from '../document-requests/document-requirement.entity.js';
+import { requireText } from '../common/input.js';
 
 const definitions: [string, string, string[]][] = [
   ['builtin-mortgage', 'Residential mortgage - purchase', ['Government-issued ID', 'Co-borrower ID', 'Last 2 years W-2', 'Last 2 years tax returns', 'Last 2 months bank statements', 'Last 30 days pay stubs', 'Purchase contract', 'Homeowners insurance']],

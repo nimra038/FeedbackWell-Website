@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserStatus } from '../../users/user.entity';
+import { User, UserStatus } from '../../users/user.entity.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

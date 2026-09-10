@@ -1,9 +1,9 @@
 import { EntityManager } from 'typeorm';
-import { Notification } from './notification.entity';
-import { DocumentRequest } from '../document-requests/document-request.entity';
-import { Customer } from '../customers/customer.entity';
-import { Organization } from '../organizations/organization.entity';
-import { User } from '../users/user.entity';
+import { Notification } from './notification.entity.js';
+import { DocumentRequest } from '../document-requests/document-request.entity.js';
+import { Customer } from '../customers/customer.entity.js';
+import { Organization } from '../organizations/organization.entity.js';
+import { User } from '../users/user.entity.js';
 
 export async function queueRequestNotice(manager: EntityManager, request: DocumentRequest, target: 'customer' | 'lender', eventKey: string, message: string) {
   const recipient = target === 'customer'

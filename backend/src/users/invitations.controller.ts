@@ -1,5 +1,5 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UsersService } from './users.service.js';
 @Controller('v1/invitations')
 export class InvitationsController {
   constructor(private readonly users: UsersService) {}

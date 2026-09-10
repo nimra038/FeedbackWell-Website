@@ -4,11 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import request from 'supertest';
-import { OrganizationsController } from '../src/organizations/organizations.controller';
-import { OrganizationsService } from '../src/organizations/organizations.service';
-import { Organization } from '../src/organizations/organization.entity';
-import { User } from '../src/users/user.entity';
-import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard';
+import { OrganizationsController } from '../src/organizations/organizations.controller.js';
+import { OrganizationsService } from '../src/organizations/organizations.service.js';
+import { Organization } from '../src/organizations/organization.entity.js';
+import { User } from '../src/users/user.entity.js';
+import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard.js';
 
 // This HTTP suite uses synthetic repositories; it cannot connect to or synchronize a real database.
 describe('HTTP tenant and permission boundaries', () => {

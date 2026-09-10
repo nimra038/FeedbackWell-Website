@@ -1,14 +1,14 @@
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, createHash } from 'crypto';
-import { StaffInvitation } from './invitation.entity';
-import { Organization } from '../organizations/organization.entity';
-import { Notification } from '../notifications/notification.entity';
+import { StaffInvitation } from './invitation.entity.js';
+import { Organization } from '../organizations/organization.entity.js';
+import { Notification } from '../notifications/notification.entity.js';
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User, UserRole, UserStatus } from './user.entity';
-import { assertEnum, pickFields, requireText } from '../common/input';
+import { User, UserRole, UserStatus } from './user.entity.js';
+import { assertEnum, pickFields, requireText } from '../common/input.js';
 
 @Injectable()
 export class UsersService {

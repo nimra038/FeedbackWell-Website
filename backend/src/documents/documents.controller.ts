@@ -4,9 +4,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { DocumentsService } from './documents.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequirePermission } from '../auth/permissions';
+import { DocumentsService } from './documents.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/documents')

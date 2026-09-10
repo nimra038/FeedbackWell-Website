@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Organization } from './organization.entity';
-import { pickFields, requireText } from '../common/input';
+import { Organization } from './organization.entity.js';
+import { pickFields, requireText } from '../common/input.js';
 
 @Injectable()
 export class OrganizationsService {

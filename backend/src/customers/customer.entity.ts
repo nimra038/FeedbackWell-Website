@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
+import { Organization } from '../organizations/organization.entity.js';
 
 export enum CustomerType {
   INDIVIDUAL = 'individual',
