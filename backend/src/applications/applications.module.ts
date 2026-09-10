@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '../auth/auth.module';
-import { Application } from './application.entity';
-import { ApplicationsService } from './applications.service';
-import { ApplicationsController } from './applications.controller';
+import { AuthModule } from '../auth/auth.module.js';
+import { Application } from './application.entity.js';
+import { ApplicationsService } from './applications.service.js';
+import { ApplicationsController } from './applications.controller.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Application]), AuthModule],

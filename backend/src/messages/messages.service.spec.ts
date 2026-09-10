@@ -1,4 +1,4 @@
-import { MessagesService } from './messages.service';
+import { MessagesService } from './messages.service.js';
 import { NotFoundException } from '@nestjs/common';
 
 describe('Message access and note privacy', () => {

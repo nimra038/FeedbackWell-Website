@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Request, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { PortalService } from './portal.service';
-import { PortalGuard } from './portal.guard';
-import { DocumentsService } from '../documents/documents.service';
-import { MessagesService } from '../messages/messages.service';
+import { PortalService } from './portal.service.js';
+import { PortalGuard } from './portal.guard.js';
+import { DocumentsService } from '../documents/documents.service.js';
+import { MessagesService } from '../messages/messages.service.js';
 
 @Controller('v1/portal')
 export class PortalController {

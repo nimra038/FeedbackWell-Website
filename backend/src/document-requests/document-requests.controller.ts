@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { DocumentRequestsService } from './document-requests.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { DocumentRequestStatus } from './document-request.entity';
-import { RequirementStatus } from './document-requirement.entity';
-import { RequirePermission } from '../auth/permissions';
+import { DocumentRequestsService } from './document-requests.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { DocumentRequestStatus } from './document-request.entity.js';
+import { RequirementStatus } from './document-requirement.entity.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/requests')

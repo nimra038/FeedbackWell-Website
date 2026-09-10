@@ -6,6 +6,10 @@ import express, {
 } from 'express';
 
 import { NestFactory } from '@nestjs/core';
+<<<<<<< HEAD
+=======
+import { AppModule } from './app.module.js';
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { ConfigService } from '@nestjs/config';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import type { INestApplication } from '@nestjs/common';

@@ -1,11 +1,11 @@
-import { requireText } from '../common/input';
+import { requireText } from '../common/input.js';
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User, UserStatus, UserRole } from '../users/user.entity';
-import { Organization } from '../organizations/organization.entity';
+import { User, UserStatus, UserRole } from '../users/user.entity.js';
+import { Organization } from '../organizations/organization.entity.js';
 
 @Injectable()
 export class AuthService {

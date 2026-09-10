@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
+<<<<<<< HEAD
     "ignoreDeprecations": "6.0",
     "module": "ESNext",
+=======
+    "module": "commonjs",
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "isolatedModules": true,

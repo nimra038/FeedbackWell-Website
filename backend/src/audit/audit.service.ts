@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuditEvent } from './audit-event.entity';
+import { AuditEvent } from './audit-event.entity.js';
 
 @Injectable()
 export class AuditService {

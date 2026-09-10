@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,23 +15,47 @@ import { AuditInterceptor } from './audit/audit.interceptor.js';
 import { StorageDeletion } from './documents/storage-deletion.entity.js';
 import { Notification } from './notifications/notification.entity.js';
 
+=======
+import { StaffInvitation } from './users/invitation.entity.js';
+import { RateLimitGuard } from './auth/rate-limit.guard.js';
+import { RateLimitBucket } from './auth/rate-limit-bucket.entity.js';
+import { RequestTemplate } from './templates/template.entity.js';
+import { TemplatesModule } from './templates/templates.module.js';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { AuditInterceptor } from './audit/audit.interceptor.js';
+import { StorageDeletion } from './documents/storage-deletion.entity.js';
+import { Notification } from './notifications/notification.entity.js';
+import { NotificationsModule } from './notifications/notifications.module.js';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { Organization } from './organizations/organization.entity.js';
 import { User } from './users/user.entity.js';
 import { Customer } from './customers/customer.entity.js';
 import { Application } from './applications/application.entity.js';
 import { DocumentRequest } from './document-requests/document-request.entity.js';
 import { DocumentRequirement } from './document-requests/document-requirement.entity.js';
+<<<<<<< HEAD
 import {
   Document,
   DocumentVersion,
 } from './documents/document.entity.js';
+=======
+import { Document, DocumentVersion } from './documents/document.entity.js';
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { AuditEvent } from './audit/audit-event.entity.js';
 import { Message } from './messages/message.entity.js';
 import { PortalOtp } from './portal/portal-otp.entity.js';
 import { PortalSession } from './portal/portal-session.entity.js';
+<<<<<<< HEAD
 
 import { TemplatesModule } from './templates/templates.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+=======
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { OrganizationsModule } from './organizations/organizations.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';

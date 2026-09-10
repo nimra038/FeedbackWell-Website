@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Application, ApplicationStatus } from './application.entity';
-import { Customer } from '../customers/customer.entity';
-import { User, UserStatus } from '../users/user.entity';
+import { Application, ApplicationStatus } from './application.entity.js';
+import { Customer } from '../customers/customer.entity.js';
+import { User, UserStatus } from '../users/user.entity.js';
 import { randomUUID } from 'crypto';
-import { pickFields, assertEnum, requireText } from '../common/input';
+import { pickFields, assertEnum, requireText } from '../common/input.js';
 
 @Injectable()
 export class ApplicationsService {

@@ -1,4 +1,4 @@
-import { DocumentsService } from './documents.service';
+import { DocumentsService } from './documents.service.js';
 import { NotFoundException } from '@nestjs/common';
 
 describe('Document tenant boundary', () => {

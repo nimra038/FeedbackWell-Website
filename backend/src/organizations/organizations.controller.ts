@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { RequirePermission } from '../auth/permissions';
-import { OrganizationsService } from './organizations.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequirePermission } from '../auth/permissions.js';
+import { OrganizationsService } from './organizations.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/organizations')

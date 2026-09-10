@@ -1,7 +1,7 @@
-import { DocumentRequestsService } from './document-requests.service';
+import { DocumentRequestsService } from './document-requests.service.js';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
-import { RequirementStatus } from './document-requirement.entity';
-import { DocumentRequestStatus } from './document-request.entity';
+import { RequirementStatus } from './document-requirement.entity.js';
+import { DocumentRequestStatus } from './document-request.entity.js';
 
 describe('Request and requirement isolation', () => {
   const requests = { findOne: jest.fn(), update: jest.fn() };

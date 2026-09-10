@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { UserRole } from '../users/user.entity';
+import { UserRole } from '../users/user.entity.js';
 
 export const PERMISSION_KEY = 'permission';
 export type Permission = 'customers.read' | 'customers.write' | 'applications.read' | 'applications.write' |

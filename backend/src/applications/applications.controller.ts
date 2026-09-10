@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
-import { ApplicationsService } from './applications.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApplicationStatus } from './application.entity';
-import { RequirePermission } from '../auth/permissions';
+import { ApplicationsService } from './applications.service.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { ApplicationStatus } from './application.entity.js';
+import { RequirePermission } from '../auth/permissions.js';
 
 @UseGuards(JwtAuthGuard)
 @Controller('v1/applications')

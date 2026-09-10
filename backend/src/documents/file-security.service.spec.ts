@@ -1,4 +1,4 @@
-import { FileSecurityService } from './file-security.service';
+import { FileSecurityService } from './file-security.service.js';
 import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { createServer } from 'net';
 

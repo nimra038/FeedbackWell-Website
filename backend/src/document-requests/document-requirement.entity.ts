@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { DocumentRequest } from './document-request.entity';
+import { DocumentRequest } from './document-request.entity.js';
 
 export enum RequirementStatus {
   MISSING = 'missing',

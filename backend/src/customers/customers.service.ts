@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { Customer, CustomerStatus, CustomerType } from './customer.entity';
-import { pickFields, assertEnum, requireText } from '../common/input';
+import { Customer, CustomerStatus, CustomerType } from './customer.entity.js';
+import { pickFields, assertEnum, requireText } from '../common/input.js';
 
 @Injectable()
 export class CustomersService {

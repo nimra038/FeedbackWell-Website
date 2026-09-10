@@ -1,4 +1,4 @@
-import { PortalService } from './portal.service';
+import { PortalService } from './portal.service.js';
 import { createHmac } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';

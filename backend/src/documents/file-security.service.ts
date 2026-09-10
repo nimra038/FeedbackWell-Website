@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 import {
   BadRequestException,
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
 
+=======
+import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
 import { fromBuffer } from 'file-type';
 import { connect } from 'net';
 
@@ -24,6 +28,7 @@ const supported = new Set<string>([
 export class FileSecurityService {
   async inspect(buffer: Buffer, claimedMime: string): Promise<string> {
     let detected: Awaited<ReturnType<typeof fromBuffer>>;
+<<<<<<< HEAD
 
     try {
       detected = await fromBuffer(buffer);
@@ -35,6 +40,10 @@ export class FileSecurityService {
 
     let mime: string | undefined = detected?.mime;
 
+=======
+    try { detected = await fromBuffer(buffer); } catch { throw new BadRequestException('The uploaded file is invalid or damaged'); }
+    let mime: string | undefined = detected?.mime;
+>>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
     if (!mime && ['text/plain', 'text/csv'].includes(claimedMime)) {
       try {
         new TextDecoder('utf-8', {

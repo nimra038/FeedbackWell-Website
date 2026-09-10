@@ -1,4 +1,4 @@
-import { Document } from '../documents/document.entity';
+import { Document } from '../documents/document.entity.js';
 import { Injectable, NotFoundException, UnauthorizedException, BadRequestException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
@@ -6,9 +6,9 @@ import { JwtService } from '@nestjs/jwt';
 import { createTransport, Transporter } from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, randomInt, timingSafeEqual } from 'crypto';
-import { PortalOtp } from './portal-otp.entity';
-import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity';
-import { DocumentRequirement } from '../document-requests/document-requirement.entity';
+import { PortalOtp } from './portal-otp.entity.js';
+import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity.js';
+import { DocumentRequirement } from '../document-requests/document-requirement.entity.js';
 
 @Injectable()
 export class PortalService {

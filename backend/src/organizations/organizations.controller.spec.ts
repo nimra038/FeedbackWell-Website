@@ -1,4 +1,4 @@
-import { OrganizationsController } from './organizations.controller';
+import { OrganizationsController } from './organizations.controller.js';
 
 describe('Organization controller scope', () => {
   it('passes the authenticated tenant separately from the supplied ID', async () => {

@@ -1,15 +1,15 @@
-import { queueRequestNotice } from '../notifications/queue';
-import { StorageDeletion } from './storage-deletion.entity';
+import { queueRequestNotice } from '../notifications/queue.js';
+import { StorageDeletion } from './storage-deletion.entity.js';
 import { Injectable, NotFoundException, BadRequestException, StreamableFile } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash, randomUUID } from 'crypto';
 import { mkdir, writeFile, unlink, open } from 'fs/promises';
 import { resolve, dirname, sep } from 'path';
-import { Document, DocumentVersion } from './document.entity';
-import { RequirementStatus, DocumentRequirement } from '../document-requests/document-requirement.entity';
-import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity';
-import { FileSecurityService } from './file-security.service';
+import { Document, DocumentVersion } from './document.entity.js';
+import { RequirementStatus, DocumentRequirement } from '../document-requests/document-requirement.entity.js';
+import { DocumentRequest, DocumentRequestStatus } from '../document-requests/document-request.entity.js';
+import { FileSecurityService } from './file-security.service.js';
 
 @Injectable()
 export class DocumentsService {

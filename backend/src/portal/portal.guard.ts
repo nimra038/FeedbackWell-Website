@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { PortalService } from './portal.service';
+import { PortalService } from './portal.service.js';
 
 @Injectable()
 export class PortalGuard implements CanActivate {

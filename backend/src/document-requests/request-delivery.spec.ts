@@ -1,4 +1,4 @@
-import { DocumentRequestsService } from './document-requests.service';
+import { DocumentRequestsService } from './document-requests.service.js';
 import { BadRequestException } from '@nestjs/common';
 
 describe('Durable request delivery',()=>{

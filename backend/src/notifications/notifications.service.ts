@@ -1,12 +1,12 @@
-import { DocumentRequest } from '../document-requests/document-request.entity';
-import { StorageDeletion } from '../documents/storage-deletion.entity';
+import { DocumentRequest } from '../document-requests/document-request.entity.js';
+import { StorageDeletion } from '../documents/storage-deletion.entity.js';
 import { unlink } from 'fs/promises';
 import { resolve, sep } from 'path';
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, Transporter } from 'nodemailer';
-import { Notification } from './notification.entity';
+import { Notification } from './notification.entity.js';
 
 /** Durable PostgreSQL outbox. SKIP LOCKED permits multiple workers without claiming the same job. */
 @Injectable()
