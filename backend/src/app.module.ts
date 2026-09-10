@@ -50,6 +50,7 @@ import { PortalModule } from './portal/portal.module';
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
+        ssl: { rejectUnauthorized: false },
         entities: [
           StorageDeletion,
           StaffInvitation,
