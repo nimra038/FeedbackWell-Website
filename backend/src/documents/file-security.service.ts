@@ -1,14 +1,10 @@
-<<<<<<< HEAD
 import {
   BadRequestException,
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
 
-=======
-import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
->>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
-import { fromBuffer } from 'file-type';
+import FileType from 'file-type';
 import { connect } from 'net';
 
 const supported = new Set<string>([
@@ -26,12 +22,16 @@ const supported = new Set<string>([
 
 @Injectable()
 export class FileSecurityService {
-  async inspect(buffer: Buffer, claimedMime: string): Promise<string> {
-    let detected: Awaited<ReturnType<typeof fromBuffer>>;
-<<<<<<< HEAD
+  async inspect(
+    buffer: Buffer,
+    claimedMime: string,
+  ): Promise<string> {
+    let detected: Awaited<
+      ReturnType<typeof FileType.fromBuffer>
+    >;
 
     try {
-      detected = await fromBuffer(buffer);
+      detected = await FileType.fromBuffer(buffer);
     } catch {
       throw new BadRequestException(
         'The uploaded file is invalid or damaged',
@@ -40,17 +40,18 @@ export class FileSecurityService {
 
     let mime: string | undefined = detected?.mime;
 
-=======
-    try { detected = await fromBuffer(buffer); } catch { throw new BadRequestException('The uploaded file is invalid or damaged'); }
-    let mime: string | undefined = detected?.mime;
->>>>>>> 980309a (Fix NestJS ESM Vercel deployment)
-    if (!mime && ['text/plain', 'text/csv'].includes(claimedMime)) {
+    if (
+      !mime &&
+      ['text/plain', 'text/csv'].includes(claimedMime)
+    ) {
       try {
         new TextDecoder('utf-8', {
           fatal: true,
         }).decode(buffer);
       } catch {
-        throw new BadRequestException('Invalid text encoding');
+        throw new BadRequestException(
+          'Invalid text encoding',
+        );
       }
 
       if (buffer.includes(0)) {
@@ -84,7 +85,9 @@ export class FileSecurityService {
     return mime;
   }
 
-  private compoundOfficeMime(buffer: Buffer): string | undefined {
+  private compoundOfficeMime(
+    buffer: Buffer,
+  ): string | undefined {
     try {
       if (
         buffer.length < 512 ||
@@ -104,7 +107,9 @@ export class FileSecurityService {
 
       const sector = (id: number): Buffer => {
         if (id >= count) {
-          throw new Error('Invalid compound file sector');
+          throw new Error(
+            'Invalid compound file sector',
+          );
         }
 
         return buffer.subarray(
@@ -116,7 +121,9 @@ export class FileSecurityService {
       const fatIds: number[] = [];
 
       for (let index = 0; index < 109; index++) {
-        const id = buffer.readUInt32LE(76 + index * 4);
+        const id = buffer.readUInt32LE(
+          76 + index * 4,
+        );
 
         if (id < 0xfffffffa) {
           fatIds.push(id);
@@ -127,7 +134,10 @@ export class FileSecurityService {
       const seen = new Set<number>();
 
       while (difat < 0xfffffffa) {
-        if (seen.has(difat) || seen.size > count) {
+        if (
+          seen.has(difat) ||
+          seen.size > count
+        ) {
           return undefined;
         }
 
@@ -135,8 +145,14 @@ export class FileSecurityService {
 
         const block = sector(difat);
 
-        for (let index = 0; index < size / 4 - 1; index++) {
-          const id = block.readUInt32LE(index * 4);
+        for (
+          let index = 0;
+          index < size / 4 - 1;
+          index++
+        ) {
+          const id = block.readUInt32LE(
+            index * 4,
+          );
 
           if (id < 0xfffffffa) {
             fatIds.push(id);
@@ -146,11 +162,16 @@ export class FileSecurityService {
         difat = block.readUInt32LE(size - 4);
       }
 
-      if (fatIds.length !== buffer.readUInt32LE(44)) {
+      if (
+        fatIds.length !==
+        buffer.readUInt32LE(44)
+      ) {
         return undefined;
       }
 
-      const fat = Buffer.concat(fatIds.map(sector));
+      const fat = Buffer.concat(
+        fatIds.map(sector),
+      );
 
       let directory = buffer.readUInt32LE(48);
 
@@ -159,7 +180,10 @@ export class FileSecurityService {
       const streams = new Set<string>();
 
       while (directory < 0xfffffffa) {
-        if (seen.has(directory) || seen.size > 8192) {
+        if (
+          seen.has(directory) ||
+          seen.size > 8192
+        ) {
           return undefined;
         }
 
@@ -167,8 +191,14 @@ export class FileSecurityService {
 
         const block = sector(directory);
 
-        for (let offset = 0; offset < size; offset += 128) {
-          const length = block.readUInt16LE(offset + 64);
+        for (
+          let offset = 0;
+          offset < size;
+          offset += 128
+        ) {
+          const length = block.readUInt16LE(
+            offset + 64,
+          );
 
           if (
             block[offset + 66] === 2 &&
@@ -177,19 +207,26 @@ export class FileSecurityService {
             block.readUInt32LE(offset + 120) > 0
           ) {
             const streamName = block
-              .subarray(offset, offset + length - 2)
+              .subarray(
+                offset,
+                offset + length - 2,
+              )
               .toString('utf16le');
 
             streams.add(streamName);
           }
         }
 
-        directory = fat.readUInt32LE(directory * 4);
+        directory = fat.readUInt32LE(
+          directory * 4,
+        );
       }
 
       const word = streams.has('WordDocument');
+
       const excel =
-        streams.has('Workbook') || streams.has('Book');
+        streams.has('Workbook') ||
+        streams.has('Book');
 
       if (word === excel) {
         return undefined;
@@ -215,7 +252,9 @@ export class FileSecurityService {
     await new Promise<void>((resolve, reject) => {
       const socket = connect({
         host,
-        port: Number(process.env.CLAMAV_PORT || 3310),
+        port: Number(
+          process.env.CLAMAV_PORT || 3310,
+        ),
       });
 
       let response = '';
@@ -261,7 +300,9 @@ export class FileSecurityService {
               'This file was rejected by the malware scanner',
             ),
           );
-        } else if (/stream: OK[\0\n]/.test(response)) {
+        } else if (
+          /stream: OK[\0\n]/.test(response)
+        ) {
           finish();
         } else if (
           response.includes('ERROR') ||
