@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
+// @ts-ignore
 import { fileTypeFromBuffer } from 'file-type';
 import { connect } from 'net';
 
