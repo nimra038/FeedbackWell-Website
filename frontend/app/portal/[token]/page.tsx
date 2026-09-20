@@ -2,12 +2,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import axios from 'axios';
+import { put } from '@vercel/blob/client';
 import { ShieldCheck, FileText, Upload, CheckCircle, Camera, MessageSquare, ArrowRight, LockKeyhole, FolderOpen } from 'lucide-react';
 import { errorMessage } from '@/lib/errors';
 import type { Requirement, RequestMessage } from '@/lib/types';
 
 type PortalRequirement = Requirement & { documents: { id: string; originalName: string; fileSize: number }[] };
-type Info = { title: string; dueDate: string | null; organization: { name: string; brandColor?: string }; emailHint: string };
+type Info = { title: string; dueDate: string | null; organization: { name: string; logo?: string; brandColor?: string }; emailHint: string };
 type Checklist = { total: number; completed: number; requirements: PortalRequirement[]; customer: { firstName: string }; description?: string; status: string };
 const statusText: Record<string, string> = { missing: 'Needed', uploaded: 'Uploaded ? awaiting review', under_review: 'Under review', accepted: 'Accepted', rejected: 'Please upload a replacement', needs_replacement: 'Please upload a replacement', not_applicable: 'Not required' };
 
@@ -57,16 +58,89 @@ export default function BorrowerPortal() {
     if (!files?.length || !requirementId) return;
     setBusy(true); setError(''); setNotice(''); setProgress(0);
     let uploaded = 0;
+
     try {
       for (const file of Array.from(files)) {
-        const form = new FormData(); form.append('file', file); form.append('requirementId', requirementId);
-        if (documentId) form.append('documentId', documentId);
-        await client.post(`/v1/portal/${token}/upload`, form, { headers: headers(), onUploadProgress: e => setProgress(Math.round((uploaded + (e.total ? e.loaded / e.total : 0)) / files.length * 100)) });
+        const extension = file.name.split('.').pop()?.toLowerCase() || '';
+        const mimeByExtension: Record<string, string> = {
+          pdf: 'application/pdf',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+          png: 'image/png',
+          heic: 'image/heic',
+          txt: 'text/plain',
+          csv: 'text/csv',
+          doc: 'application/msword',
+          xls: 'application/vnd.ms-excel',
+          docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        };
+        const contentType = file.type || mimeByExtension[extension];
+
+        if (!contentType) {
+          throw new Error('Unsupported file type');
+        }
+
+        const prepared = await client.post<{
+          pathname: string;
+          clientToken: string;
+          maximumSizeInBytes: number;
+            uploadIntent: string;
+        }>(
+          `/v1/portal/${token}/upload/prepare`,
+          {
+            requirementId,
+            originalName: file.name,
+            contentType,
+            ...(documentId ? { documentId } : {}),
+          },
+          { headers: headers() },
+        );
+
+        if (file.size > prepared.data.maximumSizeInBytes) {
+          throw new Error('File exceeds the requirement size limit');
+        }
+
+        await put(prepared.data.pathname, file, {
+          access: 'private',
+          token: prepared.data.clientToken,
+          contentType,
+          multipart: file.size > 5 * 1024 * 1024,
+          onUploadProgress: event => {
+            setProgress(
+              Math.round(
+                ((uploaded + event.percentage / 100) / files.length) * 100,
+              ),
+            );
+          },
+        });
+
+        await client.post(
+          `/v1/portal/${token}/upload/complete`,
+          {
+            requirementId,
+            pathname: prepared.data.pathname,
+            originalName: file.name,
+              uploadIntent: prepared.data.uploadIntent,
+            ...(documentId ? { documentId } : {}),
+          },
+          { headers: headers() },
+        );
+
         uploaded++;
       }
-      await refresh(); setNotice(`${uploaded} file${uploaded === 1 ? '' : 's'} uploaded and checked. Your lender can now review ${uploaded === 1 ? 'it' : 'them'}.`);
-    } catch (e) { setError(`${uploaded ? `${uploaded} file(s) uploaded. ` : ''}${errorMessage(e)}`); await refresh().catch(() => undefined); }
-    finally { setBusy(false); setProgress(null); }
+
+      await refresh();
+      setNotice(
+        `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded and checked. Your lender can now review ${uploaded === 1 ? 'it' : 'them'}.`,
+      );
+    } catch (e) {
+      setError(`${uploaded ? `${uploaded} file(s) uploaded. ` : ''}${errorMessage(e)}`);
+      await refresh().catch(() => undefined);
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
   };
   const sendMessage = async (event: React.FormEvent) => {
     event.preventDefault(); if (!message.trim()) return; setBusy(true); setError('');
@@ -77,7 +151,7 @@ export default function BorrowerPortal() {
   const done = checklist?.status === 'completed';
   return <main className="min-h-svh bg-[#f4f6fa] px-4 py-8 sm:py-12 text-slate-900">
     <div className="max-w-3xl mx-auto space-y-5">
-      <header className="flex items-center justify-between gap-4 mb-8"><div className="flex items-center gap-3"><span className="text-white p-3 rounded-xl" style={{ backgroundColor: color }}><ShieldCheck size={23} /></span><div><p className="font-bold text-lg">{info?.organization.name || 'Document portal'}</p><p className="text-xs text-slate-500">Secure document collection</p></div></div><span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500"><LockKeyhole size={14} />Private portal</span></header>
+      <header className="flex items-center justify-between gap-4 mb-8"><div className="flex items-center gap-3">{info?.organization.logo ? <img src={info.organization.logo} alt={`${info.organization.name} logo`} className="h-12 w-12 rounded-xl object-contain bg-white border border-slate-200 p-1" /> : <span className="text-white p-3 rounded-xl" style={{ backgroundColor: color }}><ShieldCheck size={23} /></span>}<div><p className="font-bold text-lg">{info?.organization.name || 'Document portal'}</p><p className="text-xs text-slate-500">Secure document collection</p></div></div><span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500"><LockKeyhole size={14} />Private portal</span></header>
       {error && <div role="alert" className="border border-red-200 bg-red-50 rounded-xl p-4 text-sm text-red-800">{error}{!info && <button className="block underline mt-2" onClick={() => setReload(n => n + 1)}>Try again</button>}</div>}
       {notice && <div role="status" className="border border-blue-100 bg-blue-50 rounded-xl p-4 text-sm text-blue-900">{notice}</div>}
       {!info && !error && <p className="text-center py-16 text-slate-500">Opening your request?</p>}
@@ -101,3 +175,9 @@ export default function BorrowerPortal() {
     </div>
   </main>;
 }
+
+
+
+
+
+

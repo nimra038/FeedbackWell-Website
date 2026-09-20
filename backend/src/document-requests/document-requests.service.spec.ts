@@ -23,6 +23,17 @@ describe('Request and requirement isolation', () => {
     await expect(service.deleteRequirement('req-b', 'org-a')).rejects.toBeInstanceOf(NotFoundException);
     expect(requirements.delete).not.toHaveBeenCalled();
   });
+  it('does not edit a foreign request', async () => {
+    requests.findOne.mockResolvedValue(null);
+    await expect(service.update('request-b', 'org-a', { title: 'Changed' })).rejects.toBeInstanceOf(NotFoundException);
+    expect(requests.update).not.toHaveBeenCalled();
+  });
+
+  it('does not edit a foreign requirement', async () => {
+    requirements.findOne.mockResolvedValue(null);
+    await expect(service.updateRequirement('req-b', 'org-a', { name: 'Changed' })).rejects.toBeInstanceOf(NotFoundException);
+    expect(requirements.update).not.toHaveBeenCalled();
+  });
   it('blocks completion with missing required documents', async () => {
     requests.findOne.mockResolvedValue({ id: 'request-a' });
     requirements.find.mockResolvedValue([{ required: true, status: RequirementStatus.MISSING }]);
@@ -30,3 +41,4 @@ describe('Request and requirement isolation', () => {
     expect(requests.update).not.toHaveBeenCalled();
   });
 });
+

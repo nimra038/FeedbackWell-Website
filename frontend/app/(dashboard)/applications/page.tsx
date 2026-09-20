@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -78,6 +78,7 @@ export default function ApplicationsPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [staff, setStaff] = useState<StaffUser[]>([]);
   const [view, setView] = useState<'active' | 'completed'>('active');
+  const [search, setSearch] = useState('');
 
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -105,7 +106,11 @@ export default function ApplicationsPage() {
     completedStatuses.has(app.status),
   );
 
-  const visibleApps = view === 'active' ? activeApps : completedApps;
+  const visibleApps = (view === 'active' ? activeApps : completedApps).filter((app) => {
+    const q = search.trim().toLowerCase();
+    const customerName = ((app.customer?.firstName || '') + ' ' + (app.customer?.lastName || '')).toLowerCase();
+    return !q || app.applicationNumber.toLowerCase().includes(q) || app.applicationType.toLowerCase().includes(q) || customerName.includes(q);
+  });
 
   useEffect(() => {
     let live = true;
@@ -244,9 +249,7 @@ export default function ApplicationsPage() {
           </button>
         </div>
 
-        <p className="text-xs text-slate-500">
-          Select an application to view its details.
-        </p>
+        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search applications..." className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none focus:border-[#52709f] sm:max-w-xs" />
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -520,3 +523,4 @@ export default function ApplicationsPage() {
     </div>
   );
 }
+

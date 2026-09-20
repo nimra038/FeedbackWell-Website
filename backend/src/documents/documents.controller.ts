@@ -1,9 +1,7 @@
 import {
   Controller, Post, Get, Delete, Param, UseGuards,
-  Request, UseInterceptors, UploadedFile, Body, Header,
+  Request, Body, Header,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { DocumentsService } from './documents.service.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RequirePermission } from '../auth/permissions.js';
@@ -12,26 +10,41 @@ import { RequirePermission } from '../auth/permissions.js';
 @Controller('v1/documents')
 export class DocumentsController {
   constructor(private readonly service: DocumentsService) {}
-
-  @Post('upload')
+@Post('upload/prepare')
   @RequirePermission('documents.upload')
-  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } }))
-  upload(
+  prepareUpload(
     @Request() req: any,
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: { customerId: string; requirementId: string; documentId?: string },
+    @Body() body: { customerId: string; requestId: string; requirementId: string; originalName: string; contentType: string; documentId?: string },
   ) {
-    return this.service.upload(
+    return this.service.prepareDirectUpload(
       req.user.organizationId,
       body.customerId,
+      body.requestId,
       body.requirementId,
-      req.user.id,
-      file,
-      undefined,
+      body.originalName,
+      body.contentType,
       body.documentId,
     );
   }
 
+  @Post('upload/complete')
+  @RequirePermission('documents.upload')
+  completeUpload(
+    @Request() req: any,
+    @Body() body: { customerId: string; requestId: string; requirementId: string; storagePath: string; originalName: string; uploadIntent: string; documentId?: string },
+  ) {
+    return this.service.finalizeDirectUpload(
+      req.user.organizationId,
+      body.customerId,
+      body.requestId,
+      body.requirementId,
+      req.user.id,
+      body.storagePath,
+      body.originalName,
+      body.uploadIntent,
+      body.documentId,
+    );
+  }
   @Get('requirement/:requirementId')
   @RequirePermission('documents.read')
   findByRequirement(@Param('requirementId') requirementId: string, @Request() req: any) {

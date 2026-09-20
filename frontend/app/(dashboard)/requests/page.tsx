@@ -67,6 +67,7 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [activeTab, setActiveTab] = useState('All');
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -166,22 +167,18 @@ export default function RequestsPage() {
   };
 
   const filtered = requests.filter((request) => {
-    if (activeTab === 'All') return true;
-    if (activeTab === 'Draft') return request.status === 'draft';
-    if (activeTab === 'Sent') {
-      return ['sent', 'opened'].includes(request.status);
-    }
-    if (activeTab === 'In Progress') {
-      return [
-        'in_progress',
-        'waiting_on_customer',
-        'under_review',
-      ].includes(request.status);
-    }
-    if (activeTab === 'Completed') {
-      return request.status === 'completed';
-    }
-    return true;
+    const matchesTab =
+      activeTab === 'All' ||
+      (activeTab === 'Draft' && request.status === 'draft') ||
+      (activeTab === 'Sent' && ['sent', 'opened'].includes(request.status)) ||
+      (activeTab === 'In Progress' && ['in_progress', 'waiting_on_customer', 'under_review'].includes(request.status)) ||
+      (activeTab === 'Completed' && request.status === 'completed');
+
+    const q = search.trim().toLowerCase();
+    const customerName = ((request.customer?.firstName || '') + ' ' + (request.customer?.lastName || '')).toLowerCase();
+    const matchesSearch = !q || request.title.toLowerCase().includes(q) || customerName.includes(q);
+
+    return matchesTab && matchesSearch;
   });
 
   const stats = [
@@ -271,7 +268,7 @@ export default function RequestsPage() {
               </div>
 
               <p className="text-[32px] font-extrabold leading-none tracking-tight text-gray-900">
-                {loading ? '—' : stat.value}
+                {loading ? '--' : stat.value}
               </p>
             </div>
           );
@@ -287,6 +284,8 @@ export default function RequestsPage() {
             />
 
             <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
               placeholder="Search requests..."
               className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -464,7 +463,7 @@ export default function RequestsPage() {
 
                             <p className="mt-0.5 text-[11px] text-gray-400">
                               {request.customer?.firstName}{' '}
-                              {request.customer?.lastName} ·{' '}
+                              {request.customer?.lastName} | {' '}
                               {request.customer?.email || 'No email'}
                             </p>
                           </div>
@@ -489,7 +488,7 @@ export default function RequestsPage() {
                               isOverdue ? 'text-red-500' : 'text-gray-500'
                             }`}
                           >
-                            {isOverdue && '⚠ '}
+                            {isOverdue && '! '}
                             {new Date(request.dueDate).toLocaleDateString(
                               'en-US',
                               {
@@ -500,7 +499,7 @@ export default function RequestsPage() {
                             )}
                           </p>
                         ) : (
-                          <span className="text-xs text-gray-300">—</span>
+                          <span className="text-xs text-gray-300">--</span>
                         )}
                       </td>
 
@@ -771,3 +770,4 @@ export default function RequestsPage() {
     </div>
   );
 }
+

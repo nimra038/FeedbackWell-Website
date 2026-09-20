@@ -62,9 +62,7 @@ import { PortalModule } from './portal/portal.module.js';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
 
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: config.get<string>('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
 
         entities: [
           StorageDeletion,
@@ -121,3 +119,4 @@ import { PortalModule } from './portal/portal.module.js';
   ],
 })
 export class AppModule {}
+

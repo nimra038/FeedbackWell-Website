@@ -1,4 +1,4 @@
-{
+﻿{
   "version": 2,
   "builds": [
     {
@@ -10,6 +10,12 @@
     {
       "src": "/(.*)",
       "dest": "src/main.ts"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/v1/internal/notifications/run",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

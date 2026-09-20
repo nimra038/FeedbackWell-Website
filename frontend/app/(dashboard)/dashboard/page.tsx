@@ -12,11 +12,13 @@ const labels: Record<string, string> = { draft: 'Draft', sent: 'Sent', opened: '
 const styles: Record<string, string> = { draft: 'bg-slate-100 text-slate-600', sent: 'bg-blue-50 text-blue-700', opened: 'bg-violet-50 text-violet-700', in_progress: 'bg-amber-50 text-amber-700', waiting_on_customer: 'bg-orange-50 text-orange-700', under_review: 'bg-indigo-50 text-indigo-700', completed: 'bg-emerald-50 text-emerald-700', expired: 'bg-red-50 text-red-700', cancelled: 'bg-slate-100 text-slate-500' };
 const terminal = ['completed', 'cancelled', 'expired'];
 const date = (value?: string | null) => value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No due date';
+const activityLabel = (item: any) => `${String(item.action || 'Updated').replaceAll('_', ' ')} - ${String(item.resourceType || 'record').replaceAll('_', ' ')}`;
 
 export default function DashboardPage() {
   const user = useAuthStore(s => s.user);
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
   const [applications, setApplications] = useState(0);
+  const [activity, setActivity] = useState<any[]>([]);
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
   const [assigned, setAssigned] = useState(false);
@@ -54,8 +56,8 @@ export default function DashboardPage() {
     { label: 'Completed requests', value: completed, icon: CheckCircle, color: 'text-emerald-600 bg-emerald-50' },
   ];
   const visible = requests.filter(r => {
-    const matchesTab = tab === 'all' || (tab === 'waiting' ? isWaiting(r) : tab === 'overdue' ? overdue(r) : tab === 'missing' ? (r.progress?.missing || 0) > 0 && !terminal.includes(r.status) : r.status === tab);
-    const matchesSearch = `${r.title} ${r.customer?.firstName} ${r.customer?.lastName} ${r.customer?.email}`.toLowerCase().includes(search.toLowerCase().trim());
+    const matchesTab = tab === 'all' || (tab === 'waiting' ? isWaiting(r) : tab === 'overdue' ? overdue(r) : tab === 'missing' ? (r.progress?.missing || 0) > 0 && !terminal.includes(r.status) : tab === 'rejected' ? (r.progress?.rejected || 0) > 0 : tab === 'recent' ? (r.progress?.recentlyUploaded || 0) > 0 : r.status === tab);
+    const matchesSearch = `${r.title} ${r.customer?.firstName} ${r.customer?.lastName} ${r.customer?.email} ${r.customer?.phone} ${r.customer?.externalReference} ${r.documentNames?.join(" ")} ${r.application?.applicationNumber}`.toLowerCase().includes(search.toLowerCase().trim());
     return matchesTab && matchesSearch && (!assigned || r.assignedUser?.id === user?.id);
   });
   const exportCsv = () => {
@@ -77,10 +79,22 @@ export default function DashboardPage() {
     <section aria-label="Organization overview" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
       {stats.map(s => <div key={s.label} className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 transition hover:border-[#b7c6dc] hover:shadow-sm"><div className="flex justify-between gap-2 items-start"><p className="text-xs font-medium text-slate-500">{s.label}</p><span className={`p-2 rounded-lg ${s.color}`}><s.icon size={16} /></span></div><p className="text-3xl font-bold mt-3 text-slate-900">{loading || error ? '?' : s.value}</p></div>)}
     </section>
+    <section className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 className="font-semibold text-lg text-slate-900">Recent activity</h2>
+          <p className="text-xs text-slate-500 mt-1">Latest activity across your organization</p>
+        </div>
+        {['owner', 'admin', 'manager'].includes(user?.role || '') && <Link href="/audit" className="text-xs font-semibold text-[#2d4a7a] hover:underline">View audit log</Link>}
+      </div>
+      <div className="divide-y divide-slate-100">
+        {loading ? <p className="py-6 text-sm text-slate-500">Loading activity...</p> : !activity.length ? <p className="py-6 text-sm text-slate-500">No recent activity yet.</p> : activity.map(item => <div key={item.id} className="py-3 flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-slate-800 capitalize">{activityLabel(item)}</p><p className="text-xs text-slate-500 mt-1">{item.actorType || 'system'}</p></div><span className="text-xs text-slate-400 whitespace-nowrap">{new Date(item.timestamp).toLocaleString()}</span></div>)}
+      </div>
+    </section>
     <section className="bg-white rounded-2xl border border-slate-200 overflow-hidden" aria-labelledby="requests-heading">
       <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4"><div><h2 id="requests-heading" className="font-semibold text-lg text-slate-900">Document requests</h2><p className="text-xs text-slate-500 mt-1">{loading ? 'Loading your requests?' : `${visible.length} of ${requests.length} requests`}</p></div><button title={loading ? 'Wait for requests to load' : error ? 'Resolve the loading error before exporting' : !visible.length ? 'There are no requests in the current filter to export' : 'Export the current filtered request list'} onClick={exportCsv} disabled={loading || !!error || !visible.length} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"><Download size={15} />Export CSV</button></div>
       <div className="px-5 pt-4 flex gap-1 overflow-x-auto border-b border-slate-100">
-        {[['all', 'All requests'], ['waiting', 'Waiting on borrower'], ['under_review', 'Ready for review'], ['missing', 'Missing documents'], ['overdue', 'Overdue'], ['completed', 'Completed']].map(([value, label]) => <button key={value} onClick={() => setTab(value)} className={`px-3 pb-3 text-xs font-semibold whitespace-nowrap border-b-2 ${tab === value ? 'border-[#2d4a7a] text-[#2d4a7a]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>{label}</button>)}
+        {[['all', 'All requests'], ['waiting', 'Waiting on borrower'], ['under_review', 'Ready for review'], ['missing', 'Missing documents'], ['overdue', 'Overdue'], ['completed', 'Completed'], ['rejected', 'Rejected documents'], ['recent', 'Recently uploaded']].map(([value, label]) => <button key={value} onClick={() => setTab(value)} className={`px-3 pb-3 text-xs font-semibold whitespace-nowrap border-b-2 ${tab === value ? 'border-[#2d4a7a] text-[#2d4a7a]' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>{label}</button>)}
       </div>
       <div className="p-4 sm:px-6 flex flex-wrap gap-4 justify-between items-center"><label className="relative flex-1 min-w-48 max-w-md"><Search size={16} className="absolute left-3 top-3 text-slate-400" /><input aria-label="Search requests by title, customer or email" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search requests, customers or email" className="w-full border border-slate-200 rounded-lg py-2.5 pl-10 pr-3 text-xs outline-none focus:ring-2 focus:ring-blue-200" /></label><label className="text-xs text-slate-600 inline-flex items-center gap-2"><input type="checkbox" checked={assigned} onChange={e => setAssigned(e.target.checked)} />Assigned to me</label></div>
       <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr>{['Request / customer', 'Status', 'Progress', 'Due date', 'Assigned to', ''].map((label, i) => <th key={i} className="px-5 py-3 font-medium whitespace-nowrap">{label}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">
@@ -92,3 +106,9 @@ export default function DashboardPage() {
     </section>
   </div>;
 }
+
+
+
+
+
+

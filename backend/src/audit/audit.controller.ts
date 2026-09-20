@@ -9,6 +9,12 @@ import { RequirePermission } from '../auth/permissions.js';
 export class AuditController {
   constructor(private readonly service: AuditService) {}
 
+  @Get('recent')
+  @RequirePermission('requests.read')
+  findRecent(@Request() req: any) {
+    return this.service.findRecent(req.user.organizationId);
+  }
+
   @Get()
   findAll(@Request() req: any) {
     return this.service.findAll(req.user.organizationId);
@@ -23,3 +29,4 @@ export class AuditController {
     return this.service.findByResource(req.user.organizationId, resourceType, resourceId);
   }
 }
+

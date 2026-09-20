@@ -23,6 +23,14 @@ export class AuditService {
     return this.repo.save(this.repo.create(data));
   }
 
+  findRecent(organizationId: string) {
+    return this.repo.find({
+      where: { organizationId },
+      order: { timestamp: 'DESC' },
+      take: 10,
+    });
+  }
+
   findAll(organizationId: string) {
     return this.repo.find({
       where: { organizationId },
@@ -38,3 +46,4 @@ export class AuditService {
     });
   }
 }
+

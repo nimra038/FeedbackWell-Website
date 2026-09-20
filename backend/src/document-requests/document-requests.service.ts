@@ -30,10 +30,14 @@ export class DocumentRequestsService {
     });
     if (!requests.length) return [];
     const requirements = await this.requirementRepo.find({ where: { requestId: In(requests.map(r => r.id)) } });
+    const documents = requirements.length ? await this.requestRepo.manager.getRepository(Document).find({ where: { organizationId, requirementId: In(requirements.map(r => r.id)) } }) : [];
     return requests.map(request => {
       const items = requirements.filter(r => r.requestId === request.id);
       const completed = items.filter(r => [RequirementStatus.ACCEPTED, RequirementStatus.NOT_APPLICABLE].includes(r.status)).length;
-      return { ...request, progress: { total: items.length, completed, missing: items.filter(r => r.required && [RequirementStatus.MISSING, RequirementStatus.REJECTED, RequirementStatus.NEEDS_REPLACEMENT].includes(r.status)).length }, assignedUser: request.application?.assignedUser || null };
+      const itemIds = items.map(r => r.id);
+      const recentCutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const documentNames = documents.filter(d => itemIds.includes(d.requirementId)).map(d => d.originalName);
+      return { ...request, documentNames, progress: { total: items.length, completed, missing: items.filter(r => r.required && [RequirementStatus.MISSING, RequirementStatus.REJECTED, RequirementStatus.NEEDS_REPLACEMENT].includes(r.status)).length, rejected: items.filter(r => [RequirementStatus.REJECTED, RequirementStatus.NEEDS_REPLACEMENT].includes(r.status)).length, recentlyUploaded: documents.filter(d => itemIds.includes(d.requirementId) && new Date(d.createdAt).getTime() >= recentCutoff).length }, assignedUser: request.application?.assignedUser || null };
     });
   }
 
@@ -74,6 +78,30 @@ export class DocumentRequestsService {
     return this.requestRepo.save(
       this.requestRepo.create({ ...fields, organizationId, createdBy, portalToken, status: DocumentRequestStatus.DRAFT }),
     );
+  }
+
+  async update(id: string, organizationId: string, dto: Partial<DocumentRequest>) {
+    await this.findById(id, organizationId);
+    const fields = pickFields(dto, ['title', 'description', 'dueDate']);
+
+    if (fields.title !== undefined) requireText(fields.title, 'Title');
+
+    if (fields.description !== undefined && fields.description !== null) {
+      if (typeof fields.description !== 'string' || fields.description.length > 5000) {
+        throw new BadRequestException('Description must be at most 5000 characters');
+      }
+    }
+
+    if (fields.dueDate === null) {
+      fields.dueDate = null as unknown as Date;
+    } else if (fields.dueDate !== undefined) {
+      if (typeof fields.dueDate !== 'string' || !Number.isFinite(Date.parse(fields.dueDate))) {
+        throw new BadRequestException('Invalid due date');
+      }
+    }
+
+    await this.requestRepo.update({ id, organizationId }, fields);
+    return this.findById(id, organizationId);
   }
 
   async send(id: string, organizationId: string) {
@@ -167,6 +195,41 @@ export class DocumentRequestsService {
     return requirement;
   }
 
+  async updateRequirement(requirementId: string, organizationId: string, dto: Partial<DocumentRequirement>) {
+    const requirement = await this.findRequirement(requirementId, organizationId);
+
+    if ([DocumentRequestStatus.COMPLETED, DocumentRequestStatus.CANCELLED, DocumentRequestStatus.EXPIRED].includes(requirement.request.status)) {
+      throw new BadRequestException('This requirement can no longer be edited');
+    }
+
+    const fields = pickFields(dto, ['name', 'instructions', 'required', 'minFiles']);
+
+    if (fields.name !== undefined) requireText(fields.name, 'Requirement name');
+
+    if (fields.instructions !== undefined && fields.instructions !== null) {
+      if (typeof fields.instructions !== 'string' || fields.instructions.length > 5000) {
+        throw new BadRequestException('Instructions must be at most 5000 characters');
+      }
+    }
+
+    if (fields.required !== undefined && typeof fields.required !== 'boolean') {
+      throw new BadRequestException('Required must be true or false');
+    }
+
+    if (fields.minFiles !== undefined) {
+      if (!Number.isInteger(fields.minFiles) || fields.minFiles < 1 || fields.minFiles > 20) {
+        throw new BadRequestException('Minimum files must be between 1 and 20');
+      }
+
+      if (requirement.maxFiles !== null && requirement.maxFiles !== undefined && fields.minFiles > requirement.maxFiles) {
+        throw new BadRequestException('Minimum files cannot exceed maximum files');
+      }
+    }
+
+    await this.requirementRepo.update(requirementId, fields);
+    return this.findRequirement(requirementId, organizationId);
+  }
+
   async updateRequirementStatus(requirementId: string, organizationId: string, status: RequirementStatus, reviewerId?: string, reason?: string) {
     assertEnum(status, RequirementStatus);
     const requirement = await this.findRequirement(requirementId, organizationId);
@@ -214,3 +277,5 @@ export class DocumentRequestsService {
     await this.requirementRepo.delete(requirementId);
   }
 }
+
+

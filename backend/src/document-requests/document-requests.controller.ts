@@ -28,6 +28,12 @@ export class DocumentRequestsController {
     return this.service.create(req.user.organizationId, req.user.id, body);
   }
 
+  @Patch(':id')
+  @RequirePermission('requests.write')
+  update(@Param('id') id: string, @Request() req: any, @Body() body: any) {
+    return this.service.update(id, req.user.organizationId, body);
+  }
+
   @Patch(':id/send')
   @RequirePermission('requests.write')
   send(@Param('id') id: string, @Request() req: any) {
@@ -53,6 +59,12 @@ export class DocumentRequestsController {
     return this.service.addRequirement(id, req.user.organizationId, body);
   }
 
+  @Patch('requirements/:requirementId')
+  @RequirePermission('requests.write')
+  updateRequirement(@Param('requirementId') requirementId: string, @Request() req: any, @Body() body: any) {
+    return this.service.updateRequirement(requirementId, req.user.organizationId, body);
+  }
+
   @Patch('requirements/:requirementId/status')
   @RequirePermission('documents.review')
   updateRequirementStatus(
@@ -69,3 +81,5 @@ export class DocumentRequestsController {
     return this.service.deleteRequirement(requirementId, req.user.organizationId);
   }
 }
+
+

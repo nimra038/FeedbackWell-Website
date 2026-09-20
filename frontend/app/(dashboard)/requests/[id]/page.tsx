@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { put } from '@vercel/blob/client';
 import {
   ArrowLeft, Copy, Send, Plus, CheckCircle, FileText, MessageSquare,
-  Eye, Download, X, Clock, Pencil, Trash2,
+  Eye, Download, X, Clock, Pencil, Trash2, Upload,
 } from 'lucide-react';
 import api from '@/lib/api';
 import { errorMessage } from '@/lib/errors';
@@ -238,6 +239,81 @@ export default function RequestDetailPage() {
     }
   };
 
+  const uploadDocument = async (
+    files: FileList | null,
+    requirementId: string,
+    documentId?: string,
+  ) => {
+    if (!files?.length || !data) return;
+
+    setBusy(true);
+    setError('');
+    setNotice('');
+
+    try {
+      for (const file of Array.from(files)) {
+        const extension = file.name.split('.').pop()?.toLowerCase() || '';
+        const mimeByExtension: Record<string, string> = {
+          pdf: 'application/pdf',
+          jpg: 'image/jpeg',
+          jpeg: 'image/jpeg',
+          png: 'image/png',
+          heic: 'image/heic',
+          txt: 'text/plain',
+          csv: 'text/csv',
+          doc: 'application/msword',
+          xls: 'application/vnd.ms-excel',
+          docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        };
+
+        const contentType = file.type || mimeByExtension[extension];
+        if (!contentType) throw new Error('Unsupported file type');
+
+        const prepared = await api.post<{
+          pathname: string;
+          clientToken: string;
+          maximumSizeInBytes: number;
+          uploadIntent: string;
+        }>('/v1/documents/upload/prepare', {
+          customerId: data.request.customer.id,
+          requestId: id,
+          requirementId,
+          originalName: file.name,
+          contentType,
+          ...(documentId ? { documentId } : {}),
+        });
+
+        if (file.size > prepared.data.maximumSizeInBytes) {
+          throw new Error('File exceeds the requirement size limit');
+        }
+
+        await put(prepared.data.pathname, file, {
+          access: 'private',
+          token: prepared.data.clientToken,
+          contentType,
+          multipart: file.size > 5 * 1024 * 1024,
+        });
+
+        await api.post('/v1/documents/upload/complete', {
+          customerId: data.request.customer.id,
+          requestId: id,
+          requirementId,
+          storagePath: prepared.data.pathname,
+          originalName: file.name,
+          uploadIntent: prepared.data.uploadIntent,
+          ...(documentId ? { documentId } : {}),
+        });
+      }
+
+      setData(await fetchDetails(id));
+      setNotice('Document uploaded.');
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
   const openDocument = async (
     file: UploadedDocument,
     download = false,
@@ -336,7 +412,7 @@ export default function RequestDetailPage() {
               </h1>
               <p className="mt-2 text-sm text-slate-500">
                 {data.request.customer?.firstName}{' '}
-                {data.request.customer?.lastName} ·{' '}
+                {data.request.customer?.lastName}  | {' '}
                 {data.request.customer?.email}
               </p>
             </div>
@@ -462,7 +538,7 @@ export default function RequestDetailPage() {
                       <h3 className="text-sm font-semibold text-slate-800">
                         {item.name}{' '}
                         <span className="text-[10px] font-normal text-slate-400">
-                          {item.required ? 'Required' : 'Optional'} ·{' '}
+                          {item.required ? 'Required' : 'Optional'}  | {' '}
                           {item.minFiles} file(s) minimum
                         </span>
                       </h3>
@@ -488,7 +564,7 @@ export default function RequestDetailPage() {
                             {file.originalName}
                           </p>
                           <p className="mt-1 text-[10px] text-slate-400">
-                            {(file.fileSize / 1024).toFixed(0)} KB ·{' '}
+                            {(file.fileSize / 1024).toFixed(0)} KB  | {' '}
                             {file.malwareScanPassed
                               ? 'Scan passed'
                               : 'Awaiting scan'}
@@ -516,6 +592,26 @@ export default function RequestDetailPage() {
                     ))}
                   </div>
 
+                  {canEdit &&
+                    !['completed', 'cancelled', 'expired'].includes(
+                      data.request.status,
+                    ) && (
+                      <label className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                        <Upload size={13} />
+                        {busy ? 'Uploading...' : 'Upload document'}
+                        <input
+                          type="file"
+                          multiple
+                          disabled={busy}
+                          accept={item.acceptedFileTypes?.join(',')}
+                          onChange={(event) => {
+                            void uploadDocument(event.target.files, item.id);
+                            event.currentTarget.value = '';
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
                   {canEdit && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
@@ -711,7 +807,7 @@ export default function RequestDetailPage() {
                           : item.senderType === 'customer'
                             ? 'Borrower'
                             : 'Staff'}{' '}
-                        · {new Date(item.createdAt).toLocaleString()}
+                       |  {new Date(item.createdAt).toLocaleString()}
                       </p>
                       {item.body}
                     </div>
@@ -728,7 +824,7 @@ export default function RequestDetailPage() {
                           setInternal(event.target.checked)
                         }
                       />
-                      Internal note · staff only
+                          Internal note  |  staff only
                     </label>
 
                     <textarea

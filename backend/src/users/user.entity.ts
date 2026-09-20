@@ -64,9 +64,18 @@ export class User {
   @Column({ nullable: true })
   invitedAt: Date;
 
+  @Column({ nullable: true, select: false })
+  passwordResetTokenHash: string;
+
+  @Column({ type: 'timestamptz', nullable: true, select: false })
+  passwordResetExpiresAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 }
+
+
+

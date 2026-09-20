@@ -1,6 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { PortalService } from './portal.service.js';
 import { PortalGuard } from './portal.guard.js';
 import { DocumentsService } from '../documents/documents.service.js';
@@ -38,22 +36,51 @@ export class PortalController {
   }
 
   @UseGuards(PortalGuard)
-  @Post(':token/upload')
-  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } }))
-  upload(
+  @Post(':token/upload/prepare')
+  prepareUpload(
     @Param('token') token: string,
     @Request() req: any,
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: { requirementId: string; documentId?: string },
+    @Body() body: {
+      requirementId: string;
+      originalName: string;
+      contentType: string;
+      documentId?: string;
+    },
   ) {
-    return this.documentsService.upload(
+    return this.documentsService.prepareDirectUpload(
       req.portal.organizationId,
       req.portal.sub,
+      req.portal.requestId,
+      body.requirementId,
+      body.originalName,
+      body.contentType,
+      body.documentId,
+    );
+  }
+
+  @UseGuards(PortalGuard)
+  @Post(':token/upload/complete')
+  completeUpload(
+    @Param('token') token: string,
+    @Request() req: any,
+    @Body() body: {
+      requirementId: string;
+      pathname: string;
+      originalName: string;
+      uploadIntent: string;
+        documentId?: string;
+    },
+  ) {
+    return this.documentsService.finalizeDirectUpload(
+      req.portal.organizationId,
+      req.portal.sub,
+      req.portal.requestId,
       body.requirementId,
       req.portal.sub,
-      file,
-      req.portal.requestId,
-      body.documentId,
+      body.pathname,
+      body.originalName,
+      body.uploadIntent,
+        body.documentId,
     );
   }
 
@@ -78,3 +105,8 @@ export class PortalController {
     );
   }
 }
+
+
+
+
+

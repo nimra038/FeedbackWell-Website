@@ -1,12 +1,12 @@
 import { DocumentRequest } from '../document-requests/document-request.entity.js';
 import { StorageDeletion } from '../documents/storage-deletion.entity.js';
-import { unlink } from 'fs/promises';
-import { resolve, sep } from 'path';
+import { del } from '@vercel/blob';
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { createTransport, Transporter } from 'nodemailer';
 import { Notification } from './notification.entity.js';
+import { Organization } from '../organizations/organization.entity.js';
 
 /** Durable PostgreSQL outbox. SKIP LOCKED permits multiple workers without claiming the same job. */
 @Injectable()
@@ -20,15 +20,16 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       auth: { user: config.get('SMTP_USER'), pass: config.get('SMTP_PASS') }, connectionTimeout: 10000, socketTimeout: 15000 });
   }
   onModuleInit() {
-    if (this.config.get('NOTIFICATION_WORKER_ENABLED') === 'false') return;
+    if (this.config.get('NOTIFICATION_WORKER_ENABLED') !== 'true') return;
     this.timer = setInterval(() => { void this.deliverBatch(); }, 10000);
     this.timer.unref();
   }
   onModuleDestroy() { if (this.timer) clearInterval(this.timer); this.mailer.close(); }
-  private brandedEmail(name: string, body: string) {
+  private brandedEmail(name: string, body: string, brandColor = '#2d4a7a', logo?: string) {
     const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
-    const text = escape(body).replace(/https?:\/\/[^\s<]+/g, url => `<a href="${url}" style="color:#2d4a7a">Open your secure portal</a>`).replaceAll('\n', '<br>');
-    return `<div style="background:#f4f6fa;padding:32px;font-family:Arial,sans-serif"><div style="max-width:560px;margin:auto;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:32px"><h2 style="color:#1a2744">${escape(name)}</h2><p style="color:#475569;line-height:1.7">${text}</p><hr style="border:0;border-top:1px solid #e2e8f0;margin-top:28px"><p style="font-size:12px;color:#94a3b8">Powered by FeedbackWell. Please do not email sensitive documents as attachments.</p></div></div>`;
+    const text = escape(body).replace(/https?:\/\/[^\s<]+/g, url => `<a href="${url}" style="color:${brandColor}">Open your secure portal</a>`).replaceAll('\n', '<br>');
+    const safeLogo = logo && /^https?:\/\//i.test(logo) ? escape(logo) : '';
+    return `<div style="background:#f4f6fa;padding:32px;font-family:Arial,sans-serif"><div style="max-width:560px;margin:auto;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:32px">${safeLogo ? `<img src="${safeLogo}" alt="${escape(name)} logo" style="max-height:56px;max-width:180px;margin-bottom:18px">` : ''}<h2 style="color:${brandColor}">${escape(name)}</h2><p style="color:#475569;line-height:1.7">${text}</p><hr style="border:0;border-top:1px solid #e2e8f0;margin-top:28px"><p style="font-size:12px;color:#94a3b8">Powered by FeedbackWell. Please do not email sensitive documents as attachments.</p></div></div>`;
   }
   private async cleanupStorage() {
     for (let i = 0; i < 20; i++) {
@@ -36,10 +37,8 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         const repo = manager.getRepository(StorageDeletion);
         const job = await repo.createQueryBuilder('job').orderBy('job.createdAt', 'ASC').setLock('pessimistic_write').setOnLocked('skip_locked').getOne();
         if (!job) return false;
-        const root = resolve(process.cwd(), 'uploads', 'org', job.organizationId);
-        const target = resolve(process.cwd(), job.storagePath);
-        if (!target.startsWith(root + sep)) throw new Error('Storage cleanup path is outside its organization');
-        try { await unlink(target); } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+        if (!job.storagePath.startsWith(`org/${job.organizationId}/`)) throw new Error('Storage cleanup path is outside its organization');
+        await del(job.storagePath);
         await repo.delete(job.id);
         return true;
       });
@@ -68,8 +67,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
             }
           }
           try {
+            const organization = await manager.getRepository(Organization).findOneBy({ id: job.organizationId });
+            const brandColor = organization?.brand_color || '#2d4a7a';
+            const logo = organization?.logo || undefined;
             await this.mailer.sendMail({ from: { name: job.senderName, address: this.config.getOrThrow<string>('SMTP_FROM') },
-              to: job.recipient, subject: job.subject, text: job.body, html: this.brandedEmail(job.senderName, job.body), messageId: `<${job.id}@feedbackwell.notifications>` });
+              to: job.recipient, subject: job.subject, text: job.body, html: this.brandedEmail(job.senderName, job.body, brandColor, logo), messageId: `<${job.id}@feedbackwell.notifications>` });
             await repo.update(job.id, { status: 'sent', sentAt: new Date(), attempts: job.attempts + 1 });
           } catch {
             const attempts = job.attempts + 1;
@@ -84,3 +86,4 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     finally { this.running = false; }
   }
 }
+
