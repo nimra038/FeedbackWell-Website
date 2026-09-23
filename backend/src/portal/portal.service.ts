@@ -81,7 +81,8 @@ export class PortalService {
         subject: `Your verification code - ${request.organization.name}`,
         text: `Your verification code is ${code}. It expires in 10 minutes. Do not share this code.`,
       });
-    } catch {
+    } catch (error) {
+      console.error('OTP email send failed:', error instanceof Error ? error.message : 'Unknown SMTP error');
       await this.otpRepo.update(otp.id, { used: true });
       throw new HttpException('The verification email could not be sent. Please try again later.', 503);
     }
